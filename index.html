@@ -1055,9 +1055,19 @@ function init() {
 
 init();
 
-// Service Worker registration
+// Service Worker registration with auto-reload on update
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.addEventListener('updatefound', () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+          // New version available - reload page
+          window.location.reload();
+        }
+      });
+    });
+  }).catch(() => {});
 }
 </script>
 </body>

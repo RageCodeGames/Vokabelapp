@@ -1,4 +1,4 @@
-const CACHE = 'vokabelmaster-v2';
+const CACHE = 'vokabelmaster-v3';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {

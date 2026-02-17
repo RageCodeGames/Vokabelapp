@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>VokabelMaster</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VokabelMaster">
+<meta name="theme-color" content="#09091A">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ─── RESET & BASE ─── */
+*, *::before, *::after {
+  box-sizing: border-box; margin: 0; padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none; user-select: none;
+}
+:root {
+  --bg:      #09091A;
+  --surf:    #111128;
+  --surf2:   #191930;
+  --surf3:   #20203C;
+  --border:  rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text:    #EEEEFF;
+  --muted:   #5A5A80;
+  --muted2:  #8888AA;
+
+  --p1: #F59E0B;  --p1a: rgba(245,158,11,.14);
+  --p2: #F97316;  --p2a: rgba(249,115,22,.14);
+  --p3: #22C55E;  --p3a: rgba(34,197,94,.14);
+  --p4: #3B82F6;  --p4a: rgba(59,130,246,.14);
+  --p5: #A855F7;  --p5a: rgba(168,85,247,.14);
+  --p6: #EC4899;  --p6a: rgba(236,72,153,.14);
+  --pL: #FFD700;  --pLa: rgba(255,215,0,.14);
+
+  --green:  #22C55E; --green-a: rgba(34,197,94,.16);
+  --red:    #EF4444; --red-a:   rgba(239,68,68,.16);
+}
+
+html, body {
+  height: 100%; height: 100dvh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* ─── VIEWS ─── */
+.view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.view.hidden { display: none !important; }
+
+/* ─── SCROLLABLE INNER ─── */
+.scroll-inner {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-inner::-webkit-scrollbar { display: none; }
+
+/* ─── HEADER ─── */
+.hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px 10px;
+  flex-shrink: 0;
+}
+.hdr-logo {
+  font-size: 19px; font-weight: 900;
+  background: linear-gradient(135deg, #F59E0B, #F97316);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.hdr-btn {
+  background: var(--surf2); border: 1px solid var(--border2);
+  color: var(--text); padding: 8px 14px; border-radius: 10px;
+  font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all .15s;
+}
+.hdr-btn:active { transform: scale(0.95); opacity: .8; }
+
+/* ═══════════════════════════════════════════
+   IMPORT VIEW
+═══════════════════════════════════════════ */
+#view-import {
+  align-items: center; justify-content: center;
+  gap: 0; padding: 32px 28px;
+}
+.import-icon { font-size: 72px; line-height: 1; margin-bottom: 20px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.import-h1 { font-size: 32px; font-weight: 900; letter-spacing: -1px; text-align: center; margin-bottom: 10px; }
+.import-h1 span {
+  background: linear-gradient(135deg, #F59E0B, #F97316);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.import-sub {
+  font-size: 15px; color: var(--muted2); text-align: center;
+  line-height: 1.65; margin-bottom: 36px; max-width: 300px;
+}
+.import-cta {
+  width: 100%; max-width: 340px; padding: 18px 24px;
+  border-radius: 18px; border: none; cursor: pointer;
+  font-family: 'Outfit', sans-serif; font-size: 17px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all .18s; letter-spacing: -0.3px;
+}
+.import-cta:active { transform: scale(0.97); }
+.import-cta-primary { background: linear-gradient(135deg,#F59E0B,#F97316); color: #09091A; margin-bottom: 12px; }
+.import-cta-secondary { background: var(--surf2); color: var(--text); border: 1px solid var(--border2); margin-bottom: 12px; }
+
+/* ═══════════════════════════════════════════
+   MENU VIEW
+═══════════════════════════════════════════ */
+.menu-list {
+  padding: 4px 18px 8px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.phase-row {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 15px 18px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: pointer; transition: all .15s;
+  position: relative; overflow: hidden;
+}
+.phase-row::after {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 3px 0 0 3px;
+  background: var(--pc, transparent);
+}
+.phase-row:active:not(.locked) {
+  transform: scale(0.98); background: var(--surf2);
+}
+.phase-row.locked { opacity: 0.45; cursor: not-allowed; }
+
+.phase-row-icon {
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: var(--pa, var(--surf3));
+  color: var(--pc, var(--muted));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 800;
+  flex-shrink: 0;
+}
+.phase-row-info { flex: 1; min-width: 0; }
+.phase-row-name { font-size: 16px; font-weight: 700; }
+.phase-row-sub { font-size: 12px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phase-row-right { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 18px; }
+
+.menu-divider { height: 1px; background: var(--border); margin: 2px 0; }
+
+.menu-footer {
+  padding: 12px 18px 28px;
+  display: flex; gap: 10px; flex-shrink: 0;
+}
+.menu-foot-btn {
+  flex: 1; padding: 14px 8px; border-radius: 14px;
+  border: 1px solid var(--border2); background: var(--surf2);
+  color: var(--text); font-family: 'Outfit', sans-serif;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  transition: all .15s;
+}
+.menu-foot-btn:active { transform: scale(0.96); opacity: .8; }
+
+/* ═══════════════════════════════════════════
+   QUIZ VIEW
+═══════════════════════════════════════════ */
+.quiz-top {
+  padding: 14px 20px 10px;
+  flex-shrink: 0;
+}
+.quiz-phase-lbl {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--qc, var(--muted));
+  margin-bottom: 8px;
+}
+.prog-track {
+  height: 5px; background: var(--surf3); border-radius: 3px; overflow: hidden;
+}
+.prog-fill {
+  height: 100%; border-radius: 3px;
+  background: var(--qc, var(--p1));
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.prog-nums {
+  font-size: 11px; color: var(--muted); text-align: right; margin-top: 5px;
+}
+
+/* Card area — two halves stacked */
+.card-area {
+  flex: 1; padding: 0 16px; display: flex; flex-direction: column; gap: 3px; min-height: 0;
+}
+
+.card-half {
+  flex: 1;
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 24px 20px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.card-top    { border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+.card-bottom { border-top-left-radius: 6px; border-top-right-radius: 6px; cursor: pointer; }
+
+.card-lang {
+  font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 14px;
+}
+.card-word {
+  font-size: clamp(22px, 5.5vw, 34px);
+  font-weight: 800; letter-spacing: -0.5px;
+  line-height: 1.25; word-break: break-word;
+}
+.card-topic {
+  font-size: 12px; color: var(--muted); margin-top: 12px;
+  font-weight: 500; max-width: 260px;
+}
+
+/* Cover overlay on answer card */
+.cover {
+  position: absolute; inset: 0;
+  background: #07071A;
+  border-radius: inherit;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; cursor: pointer;
+  transition: opacity .35s ease;
+  z-index: 2;
+}
+.cover.gone { opacity: 0; pointer-events: none; }
+
+.cover-pulse {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--surf3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100%{ transform: scale(1); opacity:.8; }
+  50%{ transform: scale(1.1); opacity:1; }
+}
+.cover-hint { font-size: 13px; font-weight: 600; color: var(--muted2); }
+
+/* ─── QUIZ BUTTONS ─── */
+.quiz-btns {
+  display: flex; gap: 10px;
+  padding: 10px 16px 24px;
+  flex-shrink: 0;
+}
+.qbtn {
+  flex: 1; height: 62px; border-radius: 18px;
+  border: none; cursor: pointer; font-family: 'Outfit', sans-serif;
+  font-weight: 800; font-size: 22px;
+  transition: all .15s; display: flex; align-items: center; justify-content: center;
+}
+.qbtn:active:not(:disabled) { transform: scale(0.93); }
+.qbtn:disabled { opacity: .25; cursor: not-allowed; transform: none; }
+
+.qbtn-wrong   { background: var(--red-a);   color: var(--red);   border: 2px solid rgba(239,68,68,.25); }
+.qbtn-menu    { background: var(--surf2);    color: var(--muted2); border: 1px solid var(--border2); font-size: 19px; flex: 0 0 62px; }
+.qbtn-correct { background: var(--green-a); color: var(--green); border: 2px solid rgba(34,197,94,.25); }
+
+/* ═══════════════════════════════════════════
+   COMPLETE VIEW
+═══════════════════════════════════════════ */
+#view-complete {
+  align-items: center; justify-content: center;
+  gap: 0; text-align: center; padding: 32px 28px;
+}
+.cmp-emoji   { font-size: 80px; margin-bottom: 20px; }
+.cmp-title   { font-size: 30px; font-weight: 900; letter-spacing: -1px; margin-bottom: 10px; }
+.cmp-sub     { font-size: 15px; color: var(--muted2); line-height: 1.6; margin-bottom: 36px; max-width: 280px; }
+
+/* ═══════════════════════════════════════════
+   MODALS (bottom sheets)
+═══════════════════════════════════════════ */
+.backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.backdrop.hidden { display: none; }
+
+.sheet {
+  background: var(--surf);
+  border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 500px;
+  padding: 20px 22px 44px;
+  display: flex; flex-direction: column; gap: 12px;
+  animation: sheetUp .28s cubic-bezier(.2,.8,.4,1);
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+.sheet-handle {
+  width: 38px; height: 4px; border-radius: 2px;
+  background: var(--border2); align-self: center; margin-bottom: 6px;
+}
+.sheet-title {
+  font-size: 20px; font-weight: 800; text-align: center; letter-spacing: -0.5px;
+}
+.sbt {
+  width: 100%; padding: 15px 18px; border-radius: 14px;
+  border: 1px solid var(--border); background: var(--surf2);
+  color: var(--text); font-family: 'Outfit', sans-serif;
+  font-size: 15px; font-weight: 600; cursor: pointer;
+  text-align: left; display: flex; align-items: center; gap: 12px;
+  transition: all .15s;
+}
+.sbt:active { transform: scale(0.98); }
+.sbt-accent { background: rgba(245,158,11,.12); color: #F59E0B; border-color: rgba(245,158,11,.25); }
+.sbt-danger { background: rgba(239,68,68,.1);   color: var(--red); border-color: rgba(239,68,68,.2); }
+.sbt-icon   { font-size: 20px; }
+
+/* ─── DEBUG SHEET ─── */
+.debug-sheet-title { color: var(--red) !important; }
+.dbg-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; background: var(--surf3); border-radius: 12px;
+}
+.toggle-wrap { position: relative; width: 46px; height: 26px; cursor: pointer; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--surf2); border-radius: 13px;
+  transition: .2s; border: 1px solid var(--border2);
+}
+.toggle-thumb {
+  position: absolute; width: 20px; height: 20px;
+  background: #fff; border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: .2s; pointer-events: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.toggle-wrap.on .toggle-track  { background: var(--red); border-color: var(--red); }
+.toggle-wrap.on .toggle-thumb  { transform: translateX(20px); }
+
+/* ─── TOAST ─── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--surf3); border: 1px solid var(--border2);
+  padding: 10px 22px; border-radius: 22px;
+  font-size: 14px; font-weight: 600;
+  opacity: 0; transition: all .28s;
+  z-index: 300; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── SECRET ZONE ─── */
+#secret-zone {
+  position: fixed; top: 0; right: 0;
+  width: 64px; height: 64px; z-index: 999;
+}
+
+/* ─── MISC ─── */
+input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ━━━ SECRET TAP ZONE ━━━ -->
+  <div id="secret-zone"></div>
+
+  <!-- ━━━ IMPORT VIEW ━━━ -->
+  <div id="view-import" class="view">
+    <div class="import-icon">📚</div>
+    <div class="import-h1">Vokabel<span>Master</span></div>
+    <p class="import-sub">Lade deine Vokabeldatei (CSV oder XLSX) mit den Spalten Thema, Englisch, Deutsch.</p>
+    <button class="import-cta import-cta-primary" onclick="triggerFile('file-main')">
+      📂 Datei einlesen
+    </button>
+    <button class="import-cta import-cta-secondary" onclick="showExportModal()">
+      💾 Gespeicherte Daten laden
+    </button>
+    <input type="file" id="file-main" accept=".csv,.xlsx,.xls" onchange="handleFile(this)">
+  </div>
+
+  <!-- ━━━ MENU VIEW ━━━ -->
+  <div id="view-menu" class="view hidden">
+    <div class="hdr">
+      <span class="hdr-logo">⚡ VokabelMaster</span>
+      <button class="hdr-btn" onclick="showExportModal()">💾 Export</button>
+    </div>
+    <div class="scroll-inner">
+      <div class="menu-list" id="menu-list"><!-- rendered --></div>
+    </div>
+    <div class="menu-footer">
+      <button class="menu-foot-btn" onclick="triggerFile('file-new')">📂 Neue Datei</button>
+      <input type="file" id="file-new" accept=".csv,.xlsx,.xls" onchange="handleFile(this)">
+    </div>
+  </div>
+
+  <!-- ━━━ QUIZ VIEW ━━━ -->
+  <div id="view-quiz" class="view hidden">
+    <div class="quiz-top">
+      <div class="quiz-phase-lbl" id="q-phase-lbl">Phase 1</div>
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div class="prog-nums" id="prog-nums">0 / 0</div>
+    </div>
+
+    <div class="card-area">
+      <div class="card-half card-top">
+        <div class="card-lang" id="q-lang">🇩🇪 Deutsch</div>
+        <div class="card-word" id="q-word">…</div>
+        <div class="card-topic" id="q-topic"></div>
+      </div>
+
+      <div class="card-half card-bottom" id="card-bottom" onclick="reveal()">
+        <div class="card-lang" id="a-lang">🇬🇧 Englisch</div>
+        <div class="card-word" id="a-word">…</div>
+        <div class="card-topic" id="a-topic" style="visibility:hidden"></div>
+        <div class="cover" id="cover">
+          <div class="cover-pulse">👆</div>
+          <div class="cover-hint">Tippen zum Aufdecken</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quiz-btns">
+      <button class="qbtn qbtn-wrong"   id="btn-x" onclick="answer(false)" disabled>✕</button>
+      <button class="qbtn qbtn-menu"    onclick="goMenu()">☰</button>
+      <button class="qbtn qbtn-correct" id="btn-ok" onclick="answer(true)"  disabled>✓</button>
+    </div>
+  </div>
+
+  <!-- ━━━ COMPLETE VIEW ━━━ -->
+  <div id="view-complete" class="view hidden">
+    <div class="cmp-emoji" id="cmp-emoji">🎉</div>
+    <div class="cmp-title" id="cmp-title">Geschafft!</div>
+    <p class="cmp-sub"  id="cmp-sub"></p>
+    <button class="import-cta import-cta-primary" onclick="showView('menu')">Zum Menü</button>
+  </div>
+
+</div><!-- #app -->
+
+<!-- ━━━ EXPORT/IMPORT MODAL ━━━ -->
+<div id="modal-export" class="backdrop hidden">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">💾 Export / Import</div>
+    <button class="sbt sbt-accent" onclick="doExport()"><span class="sbt-icon">⬆️</span>Daten exportieren (JSON)</button>
+    <button class="sbt" onclick="triggerFile('file-import-json')"><span class="sbt-icon">⬇️</span>Daten importieren (JSON)</button>
+    <input type="file" id="file-import-json" accept=".json" onchange="doImport(this)">
+    <button class="sbt sbt-danger" onclick="closeModal('modal-export')"><span class="sbt-icon">✕</span>Abbrechen</button>
+  </div>
+</div>
+
+<!-- ━━━ DEBUG MODAL ━━━ -->
+<div id="modal-debug" class="backdrop hidden">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title debug-sheet-title">🔧 Debug-Modus</div>
+
+    <div class="dbg-toggle-row">
+      <span style="font-size:14px;font-weight:600">24h-Sperre deaktivieren</span>
+      <label class="toggle-wrap" onclick="document.getElementById('dbg-lock-toggle').click()">
+        <input type="checkbox" id="dbg-lock-toggle" onchange="toggleDebugLock()" style="display:none">
+        <div class="toggle-track" id="dbg-track"></div>
+        <div class="toggle-thumb" id="dbg-thumb"></div>
+      </label>
+    </div>
+
+    <button class="sbt" onclick="dbgResetDates()"><span class="sbt-icon">🔄</span>Alle Phasen-Sperren zurücksetzen</button>
+    <button class="sbt" onclick="dbgClearSession()"><span class="sbt-icon">🗑️</span>Laufende Session löschen</button>
+    <button class="sbt sbt-danger" onclick="closeModal('modal-debug')"><span class="sbt-icon">✕</span>Schließen</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════
+   CONSTANTS
+════════════════════════════════════════════ */
+const STORE_KEY = 'vokabelmaster_v2';
+const PHASES = ['1','2','3','4','5','6','learned'];
+
+const PHASE_META = {
+  '1':       { label: 'Phase 1',            emoji: '①',  color: 'var(--p1)', alpha: 'var(--p1a)' },
+  '2':       { label: 'Phase 2',            emoji: '②',  color: 'var(--p2)', alpha: 'var(--p2a)' },
+  '3':       { label: 'Phase 3',            emoji: '③',  color: 'var(--p3)', alpha: 'var(--p3a)' },
+  '4':       { label: 'Phase 4',            emoji: '④',  color: 'var(--p4)', alpha: 'var(--p4a)' },
+  '5':       { label: 'Phase 5',            emoji: '⑤',  color: 'var(--p5)', alpha: 'var(--p5a)' },
+  '6':       { label: 'Phase 6',            emoji: '⑥',  color: 'var(--p6)', alpha: 'var(--p6a)' },
+  'learned': { label: '⭐ Gelernte Vokabeln', emoji: '⭐', color: 'var(--pL)', alpha: 'var(--pLa)' },
+};
+
+/* ════════════════════════════════════════════
+   APP STATE
+════════════════════════════════════════════ */
+let D = {
+  phases:    { '1':[], '2':[], '3':[], '4':[], '5':[], '6':[], learned:[] },
+  completed: { '2':null,'3':null,'4':null,'5':null,'6':null },
+  session:   null
+  // session = { phase, order:[idx,...], pos:0, answered:0, total:N }
+};
+
+let dbgNoLock = false;
+
+/* ════════════════════════════════════════════
+   PERSISTENCE
+════════════════════════════════════════════ */
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(D)); } catch(e){}
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    D = {
+      phases:    { ...D.phases,    ...(p.phases    || {}) },
+      completed: { ...D.completed, ...(p.completed || {}) },
+      session:   p.session || null
+    };
+    PHASES.forEach(ph => { if (!D.phases[ph]) D.phases[ph] = []; });
+  } catch(e) {}
+}
+
+/* ════════════════════════════════════════════
+   DATE / LOCK
+════════════════════════════════════════════ */
+function today() { return new Date().toISOString().slice(0,10); }
+
+function isLocked(phase) {
+  if (dbgNoLock) return false;
+  if (phase === '1' || phase === 'learned') return false;
+  return D.completed[phase] === today();
+}
+
+function markDone(phase) {
+  if (phase === '1' || phase === 'learned') return;
+  D.completed[phase] = today();
+  save();
+}
+
+/* ════════════════════════════════════════════
+   FILE HANDLING
+════════════════════════════════════════════ */
+function triggerFile(id) { document.getElementById(id).click(); }
+
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const isXL = /\.xlsx?$/i.test(file.name);
+  const rd = new FileReader();
+  rd.onload = e => {
+    let rows = [];
+    try {
+      if (isXL) {
+        const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        // defval:'': ensure empty cells return '' not undefined
+        const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        if (!raw.length) { toast('❌ Leere Datei'); return; }
+        // Smart header detection: skip row 1 if it looks like a header
+        const firstRow = raw[0].map(v => str(v).toLowerCase());
+        const looksLikeHeader = firstRow.some(v =>
+          ['thema','englisch','deutsch','topic','english','german'].includes(v)
+        );
+        const dataRows = looksLikeHeader ? raw.slice(1) : raw;
+        rows = dataRows.map(row => ({
+          topic: str(row[0]), en: str(row[1]), de: str(row[2])
+        }));
+      } else {
+        const lines = e.target.result.split(/\r?\n/);
+        // Smart header detection for CSV
+        const firstCols = csvLine(lines[0] || '').map(v => v.trim().toLowerCase());
+        const looksLikeHeader = firstCols.some(v =>
+          ['thema','englisch','deutsch','topic','english','german'].includes(v)
+        );
+        const dataLines = looksLikeHeader ? lines.slice(1) : lines;
+        rows = dataLines.map(l => {
+          const c = csvLine(l);
+          return { topic: (c[0]||'').trim(), en: (c[1]||'').trim(), de: (c[2]||'').trim() };
+        });
+      }
+    } catch(err) { toast('❌ Fehler beim Einlesen'); return; }
+
+    // Filter: must have both English AND German
+    const totalRaw = rows.length;
+    rows = rows.filter(r => r.en && r.de);
+    const skippedEmpty = totalRaw - rows.length;
+    if (!rows.length) { toast('❌ Keine Vokabeln gefunden'); return; }
+
+    // Case-insensitive duplicate check across ALL phases
+    const normKey = (en, de) => en.toLowerCase() + '§' + de.toLowerCase();
+    const existing = new Set(
+      Object.values(D.phases).flat().map(v => normKey(v.en, v.de))
+    );
+    let added = 0, skippedDupe = 0;
+    rows.forEach(r => {
+      const k = normKey(r.en, r.de);
+      if (!existing.has(k)) {
+        existing.add(k);
+        D.phases['1'].push({ topic: r.topic, en: r.en, de: r.de, id: uid() });
+        added++;
+      } else {
+        skippedDupe++;
+      }
+    });
+
+    save();
+
+    // Informative feedback
+    let msg = '✅ ' + added + ' neue Vokabeln';
+    if (skippedDupe > 0) msg += ' · ' + skippedDupe + ' Duplikat' + (skippedDupe > 1 ? 'e' : '') + ' übersprungen';
+    if (skippedEmpty > 0) msg += ' · ' + skippedEmpty + ' leer';
+    toast(msg);
+
+    if (D.session) D.session = null;
+    showView('menu');
+  };
+  isXL ? rd.readAsArrayBuffer(file) : rd.readAsText(file, 'UTF-8');
+}
+
+function str(v) { return v == null ? '' : String(v).trim(); }
+
+function csvLine(line) {
+  const out = []; let cur = '', q = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') { q = !q; }
+    else if (c === ',' && !q) { out.push(cur); cur = ''; }
+    else cur += c;
+  }
+  out.push(cur);
+  return out;
+}
+
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+/* ════════════════════════════════════════════
+   VIEW ROUTING
+════════════════════════════════════════════ */
+function showView(name) {
+  ['import','menu','quiz','complete'].forEach(v =>
+    document.getElementById('view-'+v).classList.toggle('hidden', v !== name)
+  );
+  if (name === 'menu') renderMenu();
+}
+
+/* ════════════════════════════════════════════
+   MENU RENDERING
+════════════════════════════════════════════ */
+function renderMenu() {
+  const list = document.getElementById('menu-list');
+  let html = '';
+
+  PHASES.forEach((ph, i) => {
+    const m      = PHASE_META[ph];
+    const count  = availableCards(ph).length;
+    const locked = isLocked(ph);
+    const lockTxt = locked ? ' · Bis morgen gesperrt' : '';
+    const cntTxt  = count + ' Vokabel' + (count !== 1 ? 'n' : '');
+
+    const style = `style="--pc:${m.color};--pa:${m.alpha}"`;
+
+    html += `
+      <div class="phase-row${locked ? ' locked' : ''}" ${style}
+           onclick="${locked ? 'lockedToast()' : `startPhase('${ph}')`}">
+        <div class="phase-row-icon">${m.emoji}</div>
+        <div class="phase-row-info">
+          <div class="phase-row-name">${m.label}</div>
+          <div class="phase-row-sub">${cntTxt}${lockTxt}</div>
+        </div>
+        <div class="phase-row-right">
+          ${locked ? '🔒' : count > 0 ? '›' : ''}
+        </div>
+      </div>
+    `;
+    if (i === 5) html += '<div class="menu-divider"></div>';
+  });
+
+  list.innerHTML = html;
+}
+
+function lockedToast() { toast('🔒 Morgen um 00:00 Uhr wieder verfügbar'); }
+
+/* ════════════════════════════════════════════
+   QUIZ – START / RESUME
+════════════════════════════════════════════ */
+
+/* Get cards available today (not moved today) */
+function availableCards(phase) {
+  if (phase === '1') return D.phases[phase]; // Phase 1: all cards always available
+  const t = today();
+  return D.phases[phase].filter(c => !c.movedDate || c.movedDate !== t);
+}
+
+function startPhase(phase) {
+  const cards = availableCards(phase);
+  if (!cards.length) {
+    const total = D.phases[phase].length;
+    if (total > 0 && phase !== '1') {
+      toast('⏰ Alle ' + total + ' Vokabeln erst ab morgen verfügbar');
+    } else {
+      toast('Keine Vokabeln in dieser Phase');
+    }
+    return;
+  }
+
+  // Resume existing session for THIS phase
+  if (D.session && D.session.phase === phase) {
+    // validate: ensure all indices still valid
+    const maxIdx = cards.length - 1;
+    D.session.order = D.session.order.filter(i => i >= 0 && i <= maxIdx);
+    if (D.session.pos > D.session.order.length) D.session.pos = D.session.order.length;
+  } else {
+    // New session - build index mapping
+    const allCards = D.phases[phase];
+    const available = availableCards(phase);
+    const availIdx = available.map(c => allCards.indexOf(c));
+    D.session = {
+      phase,
+      order: shuffle(availIdx),
+      pos:      0,
+      answered: 0,
+      total:    available.length
+    };
+    save();
+  }
+
+  applyPhaseColor(phase);
+  showView('quiz');
+  renderCard();
+}
+
+function applyPhaseColor(phase) {
+  const m = PHASE_META[phase];
+  const qv = document.getElementById('view-quiz');
+  qv.style.setProperty('--qc', m.color);
+}
+
+/* ════════════════════════════════════════════
+   QUIZ – CARD RENDERING
+════════════════════════════════════════════ */
+function renderCard() {
+  const s = D.session;
+  if (!s) return;
+  const { phase, order, pos, answered, total } = s;
+  const cards = D.phases[phase];
+
+  // Session finished?
+  if (pos >= order.length) {
+    finishSession();
+    return;
+  }
+
+  // Guard against invalid index (e.g. after card moved)
+  const cardIdx = order[pos];
+  if (cardIdx < 0 || cardIdx >= cards.length) {
+    D.session.pos++;
+    D.session.answered++;
+    save();
+    renderCard();
+    return;
+  }
+
+  const card = cards[cardIdx];
+
+  // Randomize question side per card
+  const enFirst = Math.random() > 0.5;
+  const qLang = enFirst ? '🇬🇧 Englisch' : '🇩🇪 Deutsch';
+  const aLang = enFirst ? '🇩🇪 Deutsch'  : '🇬🇧 Englisch';
+  const qWord = enFirst ? card.en : card.de;
+  const aWord = enFirst ? card.de : card.en;
+
+  document.getElementById('q-phase-lbl').textContent = PHASE_META[phase].label;
+  document.getElementById('q-lang').textContent  = qLang;
+  document.getElementById('q-word').textContent  = qWord;
+  document.getElementById('q-topic').textContent = card.topic || '';
+  document.getElementById('a-lang').textContent  = aLang;
+  document.getElementById('a-word').textContent  = aWord;
+
+  // Reset cover
+  document.getElementById('cover').classList.remove('gone');
+  document.getElementById('btn-ok').disabled = true;
+  document.getElementById('btn-x').disabled  = true;
+
+  // Progress
+  const pct = total > 0 ? Math.round(answered / total * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-nums').textContent = answered + ' / ' + total;
+}
+
+/* ════════════════════════════════════════════
+   QUIZ – REVEAL
+════════════════════════════════════════════ */
+function reveal() {
+  const cover = document.getElementById('cover');
+  if (cover.classList.contains('gone')) return;
+  cover.classList.add('gone');
+  document.getElementById('btn-ok').disabled = false;
+  document.getElementById('btn-x').disabled  = false;
+}
+
+/* ════════════════════════════════════════════
+   QUIZ – ANSWER
+════════════════════════════════════════════ */
+function answer(correct) {
+  const s = D.session;
+  if (!s) return;
+  const { phase, order, pos } = s;
+  const cards = D.phases[phase];
+  const cardIdx = order[pos];
+  const card = cards[cardIdx];
+
+  if (!card) {
+    nextCard();
+    return;
+  }
+
+  if (phase === 'learned') {
+    if (!correct) {
+      // Send back to Phase 1 for re-learning
+      removeCard(phase, cardIdx, pos);
+      card.movedDate = today();
+      D.phases['1'].push(card);
+      toast('↩ Zurück zu Phase 1');
+    }
+    // correct → stays in learned, nothing to do structurally
+  } else {
+    const num = parseInt(phase, 10);
+    if (correct) {
+      const next = num === 6 ? 'learned' : String(num + 1);
+      removeCard(phase, cardIdx, pos);
+      card.movedDate = today();
+      D.phases[next].push(card);
+      toast(num === 6 ? '⭐ Gelernt!' : '→ Phase ' + (num + 1));
+    } else {
+      if (num > 1) {
+        const prev = String(num - 1);
+        removeCard(phase, cardIdx, pos);
+        card.movedDate = today();
+        D.phases[prev].push(card);
+        toast('← Phase ' + (num - 1));
+      }
+      // Phase 1 wrong: stays, no movement
+    }
+  }
+
+  nextCard();
+}
+
+function removeCard(phase, cardIdx, sessionPos) {
+  // Remove card from phase array and fix session indices
+  D.phases[phase].splice(cardIdx, 1);
+
+  // Decrement all remaining order entries that pointed past cardIdx
+  for (let i = sessionPos + 1; i < D.session.order.length; i++) {
+    if (D.session.order[i] > cardIdx) {
+      D.session.order[i]--;
+    }
+  }
+}
+
+function nextCard() {
+  D.session.pos++;
+  D.session.answered++;
+  save();
+  renderCard();
+}
+
+/* ════════════════════════════════════════════
+   QUIZ – FINISH
+════════════════════════════════════════════ */
+function finishSession() {
+  const { phase, total } = D.session;
+
+  // Mark phase locked (not phase 1 or learned)
+  markDone(phase);
+
+  D.session = null;
+  save();
+
+  const m = PHASE_META[phase];
+  const isLearned = phase === 'learned';
+  const lockNote = (!isLearned && phase !== '1')
+    ? '\n\nDiese Phase ist bis morgen Mitternacht gesperrt.'
+    : '';
+
+  document.getElementById('cmp-emoji').textContent = isLearned ? '⭐' : '🎉';
+  document.getElementById('cmp-title').textContent = m.label + ' – Fertig!';
+  document.getElementById('cmp-sub').textContent =
+    'Du hast alle ' + total + ' Vokabeln dieser Phase abgefragt.' + lockNote;
+
+  showView('complete');
+}
+
+/* ════════════════════════════════════════════
+   NAVIGATE BACK TO MENU (mid-session)
+════════════════════════════════════════════ */
+function goMenu() {
+  // Session is saved; on re-entry to same phase → resume
+  save();
+  showView('menu');
+}
+
+/* ════════════════════════════════════════════
+   EXPORT / IMPORT
+════════════════════════════════════════════ */
+function showExportModal() { document.getElementById('modal-export').classList.remove('hidden'); }
+function closeModal(id)    { document.getElementById(id).classList.add('hidden'); }
+
+function doExport() {
+  const blob = new Blob([JSON.stringify(D, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vokabelmaster_backup_' + today() + '.json';
+  a.click();
+  closeModal('modal-export');
+  toast('✅ Export gespeichert');
+}
+
+function doImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  const r = new FileReader();
+  r.onload = e => {
+    try {
+      const p = JSON.parse(e.target.result);
+      if (!p.phases) throw new Error('Kein gültiges Format');
+      D = p;
+      PHASES.forEach(ph => { if (!D.phases[ph]) D.phases[ph] = []; });
+      save();
+      closeModal('modal-export');
+      toast('✅ Import erfolgreich!');
+      init();
+    } catch(e2) { toast('❌ Fehler beim Import'); }
+  };
+  r.readAsText(file);
+}
+
+/* ════════════════════════════════════════════
+   DEBUG MODE
+════════════════════════════════════════════ */
+let _secretCount = 0, _secretTimer = null;
+document.getElementById('secret-zone').addEventListener('click', () => {
+  _secretCount++;
+  clearTimeout(_secretTimer);
+  _secretTimer = setTimeout(() => { _secretCount = 0; }, 2200);
+  if (_secretCount >= 10) {
+    _secretCount = 0;
+    clearTimeout(_secretTimer);
+    const toggle = document.getElementById('dbg-lock-toggle');
+    toggle.checked = dbgNoLock;
+    document.querySelector('.toggle-wrap').classList.toggle('on', dbgNoLock);
+    document.getElementById('modal-debug').classList.remove('hidden');
+  }
+});
+
+function toggleDebugLock() {
+  dbgNoLock = document.getElementById('dbg-lock-toggle').checked;
+  const wrap = document.querySelector('.toggle-wrap');
+  wrap.classList.toggle('on', dbgNoLock);
+  if (!document.getElementById('view-menu').classList.contains('hidden'))
+    renderMenu();
+  toast(dbgNoLock ? '🔧 Sperren deaktiviert' : '🔧 Sperren aktiv');
+}
+
+function dbgResetDates() {
+  Object.keys(D.completed).forEach(k => D.completed[k] = null);
+  save();
+  closeModal('modal-debug');
+  renderMenu();
+  toast('🔄 Alle Phasen-Sperren zurückgesetzt');
+}
+
+function dbgClearSession() {
+  D.session = null;
+  save();
+  closeModal('modal-debug');
+  toast('🗑️ Session gelöscht');
+}
+
+/* ════════════════════════════════════════════
+   UTILITIES
+════════════════════════════════════════════ */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function range(n) { return Array.from({ length: n }, (_, i) => i); }
+
+let _toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('on');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+// Close backdrops on tap outside sheet
+document.querySelectorAll('.backdrop').forEach(bd => {
+  bd.addEventListener('click', e => { if (e.target === bd) bd.classList.add('hidden'); });
+});
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+function init() {
+  load();
+  const hasData = PHASES.some(ph => D.phases[ph].length > 0);
+  showView(hasData ? 'menu' : 'import');
+}
+
+init();
+
+// Service Worker registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

@@ -352,9 +352,11 @@ html, body {
 .debug-sheet-title { color: var(--red) !important; }
 .dbg-toggle-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px; background: var(--surf3); border-radius: 12px;
+  padding: 16px 18px; background: var(--surf3); border-radius: 12px;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
 }
-.toggle-wrap { position: relative; width: 46px; height: 26px; cursor: pointer; }
+.toggle-wrap { position: relative; width: 46px; height: 26px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .toggle-track {
   position: absolute; inset: 0;
   background: var(--surf2); border-radius: 13px;
@@ -489,9 +491,9 @@ input[type=file] { display: none; }
     <div class="sheet-handle"></div>
     <div class="sheet-title debug-sheet-title">🔧 Debug-Modus</div>
 
-    <div class="dbg-toggle-row">
+    <div class="dbg-toggle-row" onclick="toggleDebugLock()">
       <span style="font-size:14px;font-weight:600">24h-Sperre deaktivieren</span>
-      <div class="toggle-wrap" id="dbg-toggle" onclick="toggleDebugLock()">
+      <div class="toggle-wrap" id="dbg-toggle">
         <div class="toggle-track"></div>
         <div class="toggle-thumb"></div>
       </div>
@@ -1037,7 +1039,12 @@ function toast(msg) {
 
 // Close backdrops on tap outside sheet
 document.querySelectorAll('.backdrop').forEach(bd => {
-  bd.addEventListener('click', e => { if (e.target === bd) bd.classList.add('hidden'); });
+  bd.addEventListener('click', e => {
+    if (e.target === bd) {
+      bd.classList.add('hidden');
+      e.stopPropagation();
+    }
+  });
 });
 
 /* ════════════════════════════════════════════

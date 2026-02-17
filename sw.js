@@ -1,11 +1,12 @@
-const CACHE = 'vokabelmaster-v1';
-const ASSETS = ['/', '/index.html'];
+const CACHE = 'vokabelmaster-v2';
+const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {})
+    caches.open(CACHE).then(c => 
+      c.addAll(ASSETS).catch(() => {})
+    ).then(() => self.skipWaiting())
   );
-  self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {

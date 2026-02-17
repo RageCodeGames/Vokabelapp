@@ -2,7 +2,7 @@
   "name": "VokabelMaster",
   "short_name": "VokabelMaster",
   "description": "Vokabeln lernen mit dem Leitner-System",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#09091A",
   "theme_color": "#09091A",

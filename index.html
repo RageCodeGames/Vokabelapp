@@ -323,6 +323,7 @@ html, body {
   padding: 20px 22px 44px;
   display: flex; flex-direction: column; gap: 12px;
   animation: sheetUp .28s cubic-bezier(.2,.8,.4,1);
+  position: relative; z-index: 201;
 }
 @keyframes sheetUp {
   from { transform: translateY(100%); }
@@ -350,27 +351,21 @@ html, body {
 
 /* ─── DEBUG SHEET ─── */
 .debug-sheet-title { color: var(--red) !important; }
-.dbg-toggle-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 18px; background: var(--surf3); border-radius: 12px;
-  cursor: pointer; -webkit-tap-highlight-color: transparent;
-  user-select: none; -webkit-user-select: none;
+.dbg-btns {
+  display: flex; gap: 10px;
 }
-.toggle-wrap { position: relative; width: 46px; height: 26px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.toggle-track {
-  position: absolute; inset: 0;
-  background: var(--surf2); border-radius: 13px;
-  transition: .2s; border: 1px solid var(--border2);
+.dbg-btn {
+  flex: 1; padding: 14px; border-radius: 12px;
+  border: 2px solid var(--border2); background: var(--surf3);
+  color: var(--muted2); font-family: 'Outfit', sans-serif;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: all .15s; text-align: center;
 }
-.toggle-thumb {
-  position: absolute; width: 20px; height: 20px;
-  background: #fff; border-radius: 50%;
-  top: 3px; left: 3px;
-  transition: .2s; pointer-events: none;
-  box-shadow: 0 1px 4px rgba(0,0,0,.4);
+.dbg-btn:active { transform: scale(0.96); }
+.dbg-btn.active { 
+  background: var(--red-a); color: var(--red); 
+  border-color: var(--red);
 }
-.toggle-wrap.on .toggle-track  { background: var(--red); border-color: var(--red); }
-.toggle-wrap.on .toggle-thumb  { transform: translateX(20px); }
 
 /* ─── TOAST ─── */
 .toast {
@@ -491,11 +486,11 @@ input[type=file] { display: none; }
     <div class="sheet-handle"></div>
     <div class="sheet-title debug-sheet-title">🔧 Debug-Modus</div>
 
-    <div class="dbg-toggle-row" onclick="toggleDebugLock()">
-      <span style="font-size:14px;font-weight:600">24h-Sperre deaktivieren</span>
-      <div class="toggle-wrap" id="dbg-toggle">
-        <div class="toggle-track"></div>
-        <div class="toggle-thumb"></div>
+    <div style="margin-bottom:6px">
+      <div style="font-size:13px;font-weight:600;color:var(--muted2);margin-bottom:8px;text-align:center">24h-Sperre</div>
+      <div class="dbg-btns">
+        <button class="dbg-btn" id="dbg-btn-on" onclick="setDebugLock(true)">AUS 🔓</button>
+        <button class="dbg-btn" id="dbg-btn-off" onclick="setDebugLock(false)">AN 🔒</button>
       </div>
     </div>
 
@@ -985,19 +980,21 @@ document.getElementById('secret-zone').addEventListener('click', () => {
   if (_secretCount >= 10) {
     _secretCount = 0;
     clearTimeout(_secretTimer);
-    const wrap = document.getElementById('dbg-toggle');
-    if (wrap) wrap.classList.toggle('on', dbgNoLock);
     document.getElementById('modal-debug').classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('dbg-btn-on').classList.toggle('active', dbgNoLock);
+      document.getElementById('dbg-btn-off').classList.toggle('active', !dbgNoLock);
+    }, 50);
   }
 });
 
-function toggleDebugLock() {
-  dbgNoLock = !dbgNoLock;
-  const wrap = document.getElementById('dbg-toggle');
-  wrap.classList.toggle('on', dbgNoLock);
+function setDebugLock(unlock) {
+  dbgNoLock = unlock;
+  document.getElementById('dbg-btn-on').classList.toggle('active', unlock);
+  document.getElementById('dbg-btn-off').classList.toggle('active', !unlock);
   if (!document.getElementById('view-menu').classList.contains('hidden'))
     renderMenu();
-  toast(dbgNoLock ? '🔧 Sperren deaktiviert' : '🔧 Sperren aktiv');
+  toast(unlock ? '🔓 Sperren deaktiviert' : '🔒 Sperren aktiv');
 }
 
 function dbgResetDates() {

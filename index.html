@@ -491,11 +491,10 @@ input[type=file] { display: none; }
 
     <div class="dbg-toggle-row">
       <span style="font-size:14px;font-weight:600">24h-Sperre deaktivieren</span>
-      <label class="toggle-wrap" onclick="document.getElementById('dbg-lock-toggle').click()">
-        <input type="checkbox" id="dbg-lock-toggle" onchange="toggleDebugLock()" style="display:none">
-        <div class="toggle-track" id="dbg-track"></div>
-        <div class="toggle-thumb" id="dbg-thumb"></div>
-      </label>
+      <div class="toggle-wrap" id="dbg-toggle" onclick="toggleDebugLock()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </div>
     </div>
 
     <button class="sbt" onclick="dbgResetDates()"><span class="sbt-icon">🔄</span>Alle Phasen-Sperren zurücksetzen</button>
@@ -984,16 +983,15 @@ document.getElementById('secret-zone').addEventListener('click', () => {
   if (_secretCount >= 10) {
     _secretCount = 0;
     clearTimeout(_secretTimer);
-    const toggle = document.getElementById('dbg-lock-toggle');
-    toggle.checked = dbgNoLock;
-    document.querySelector('.toggle-wrap').classList.toggle('on', dbgNoLock);
+    const wrap = document.getElementById('dbg-toggle');
+    if (wrap) wrap.classList.toggle('on', dbgNoLock);
     document.getElementById('modal-debug').classList.remove('hidden');
   }
 });
 
 function toggleDebugLock() {
-  dbgNoLock = document.getElementById('dbg-lock-toggle').checked;
-  const wrap = document.querySelector('.toggle-wrap');
+  dbgNoLock = !dbgNoLock;
+  const wrap = document.getElementById('dbg-toggle');
   wrap.classList.toggle('on', dbgNoLock);
   if (!document.getElementById('view-menu').classList.contains('hidden'))
     renderMenu();

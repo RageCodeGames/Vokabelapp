@@ -720,6 +720,7 @@ function lockedToast() { toast('🔒 Morgen um 00:00 Uhr wieder verfügbar'); }
 /* Get cards available today (not moved today) */
 function availableCards(phase) {
   if (phase === '1') return D.phases[phase]; // Phase 1: all cards always available
+  if (dbgNoLock) return D.phases[phase]; // Debug mode: all cards available
   const t = today();
   return D.phases[phase].filter(c => !c.movedDate || c.movedDate !== t);
 }
